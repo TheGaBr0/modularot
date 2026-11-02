@@ -6,18 +6,15 @@ The package itself (source code, `pyproject.toml`, installation and usage instru
 
 # Contents
 - `tests/`: tests for the custom KEMs (`test_ntru_fo.py`) and for the three GGH variants (`test_ggh_versions.py`), which shows why the classic `B = U·R` public basis admits no sound oblivious sampler.
-- `benchmark_scaling.py`, `ot_scaling_full.csv`, `ot_scaling_ggh.csv`, `benchmark_report.html`: scaling benchmark over the number of branches *n* and its results.
 - `scripts_verifica/`: verification suite for the thesis (samplers, GGH variants, mix-and-match, adversarial tests, comparative analysis). See `scripts_verifica/README_cap6.md`.
-- `RESOCONTO_GGH.md`: notes on the verification and redesign of the oblivious samplers (sntrup761, GGH, GGH-HNF).
 
 # Running
 Check out the `release` branch for the package, install it (see its README), then copy or check out the files from this branch next to it:
 ```
 git worktree add ../modularot-release release
 pip install "../modularot-release[custom-kems]"
-python benchmark_scaling.py
 python scripts_verifica/run_cap6.py --quick
 ```
 
 # References and final notes
-Some files (`RESOCONTO_GGH.md`, `scripts_verifica/`) are written in Italian, as is the thesis.
+`scripts_verifica/` is written in Italian, as is the thesis.
