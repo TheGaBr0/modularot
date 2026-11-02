@@ -1,40 +1,4 @@
-"""
-GGH-HNF-based KEM with Fujisaki-Okamoto transform (IND-CCA2 in ROM).
-
-Underlying PKE: Micciancio's HNF variant of GGH (GGH_crypto.GGHHNFCryptosystem
-with GGH_private=True). The message IS the error vector; encryption is the
-deterministic reduction of that vector into the fundamental region of the
-public HNF basis. NOT quantum-safe -- educational/research only.
-
-Scheme
-──────
-KeyGen(n):
-  repeat (R, H = HNF(R)) <- GGHHNFCryptosystem(n, GGH_private=True)
-  until sigma_ok(R), with public sigma_e(n) = n // 2: accept iff
-  2 * sigma_e * max_j sum_i |R^-1[i,j]| < 1. This column-L1 bound guarantees
-  Babai rounding decrypts any error in {-sigma_e,+sigma_e}^n.
-
-Encaps(pk = H):
-  1. m  <-$ {0,1}^n                       KEM coin
-  2. e  = sigma_e * (-1)^(1-m)            error vector in {+-sigma_e}^n
-  3. c  = e mod H                         reduction into the fundamental region
-  4. ct = Ser(c)                          only coords with diag > 1 (rest are 0)
-  5. ss = H_key(m ‖ ct)
-
-Decaps(sk = (H, R, reject_key), ct):
-  1. e' = c - BabaiRound_R(c)             GGH-HNF decryption (library Babai)
-  2. accept iff e' in {+-sigma_e}^n AND reduce(e') == c   (FO re-encryption)
-  3. ss = H_key(m' ‖ ct) on success, else H_rej(reject_key ‖ ct)
-
-Serialisation
-─────────────
-pk : 4B n (int32 BE)
-     | n diagonal entries d_i: 2B BE length | that many unsigned BE bytes
-     | for each i with d_i > 1: the i reduced entries H[k,i] (k < i), each in
-       W_i bytes, W_i = byte length of d_i - 1   (entries lie in [0, d_i))
-sk : pk ‖ n^2 x 8B (R, int64 BE signed, row-major) ‖ 32B reject_key
-ct : for each i with d_i > 1: c_i in W_i bytes
-"""
+"""GGH-HNF KEM with the Fujisaki-Okamoto transform. Educational, not quantum-safe."""
 
 import functools
 import hashlib
