@@ -1,0 +1,96 @@
+{
+  "family": "NTRU_FO",
+  "label": "NTRU_FO-701",
+  "section": "subsec:cap7-ind-ntru-fo",
+  "kind": "coeff",
+  "unit": "coefficiente",
+  "n_keys": 200,
+  "domain": [
+    0,
+    8192
+  ],
+  "k_classes": 8192,
+  "passo1": {
+    "name": "verifica strutturale  Encode(Decode(pk))==pk",
+    "mismatch": 0,
+    "checked": 200,
+    "encaps_accept": 200,
+    "encaps_total": 200,
+    "pass": true
+  },
+  "pool_size": [
+    140200,
+    140200
+  ],
+  "passo2": {
+    "name": "test primario Kolmogorov-Smirnov",
+    "D": 0.006850000000000023,
+    "D_at": 5585,
+    "n": 20000,
+    "m": 20000,
+    "n_eff": null,
+    "threshold": 0.013580000000000002,
+    "c_alpha": 1.358,
+    "alpha": 0.05,
+    "reject": false,
+    "p_value": 0.7346774613703235,
+    "reject_fraction": 0.0,
+    "reps": 9,
+    "D_runs": [
+      0.005349999999999966,
+      0.00539999999999996,
+      0.005700000000000038,
+      0.006800000000000028,
+      0.006850000000000023,
+      0.008300000000000002,
+      0.008899999999999963,
+      0.009599999999999997,
+      0.013400000000000023
+    ],
+    "pass": true
+  },
+  "passo3": {
+    "name": "test secondario Pearson chi^2",
+    "real": {
+      "chi2": 8044.699115549215,
+      "df": 8191,
+      "n": 140200,
+      "crit": 8402.659188025065,
+      "reject": false,
+      "alpha": 0.05,
+      "exp_per_class": 17.1142578125
+    },
+    "obl": {
+      "chi2": 8182.128388017119,
+      "df": 8191,
+      "n": 140200,
+      "crit": 8402.659188025065,
+      "reject": false,
+      "alpha": 0.05,
+      "exp_per_class": 17.1142578125
+    },
+    "noise_band": 639.9609363078343,
+    "coherent": true,
+    "pass": true
+  },
+  "passo4": {
+    "name": "metriche descrittive",
+    "real": {
+      "shannon": 12.958066008396864,
+      "shannon_max": 13.0,
+      "H_inf_mcv": 11.378294394227503,
+      "H_inf_plugin": 11.887673458156398,
+      "p_hat": 0.00026390870185449356,
+      "max_bits": 13.0
+    },
+    "obl": {
+      "shannon": 12.95732958047451,
+      "shannon_max": 13.0,
+      "H_inf_mcv": 11.481864615286453,
+      "H_inf_plugin": 12.009663982535008,
+      "p_hat": 0.00024251069900142655,
+      "max_bits": 13.0
+    }
+  },
+  "verdict": "nessun distinguisher trovato"
+}

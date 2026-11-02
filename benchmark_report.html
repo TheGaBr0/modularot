@@ -1,0 +1,639 @@
+<title>MODULAROT — Benchmark OT 1-out-of-n</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface: #fcfcfb;
+    --plane: #f9f9f7;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --ring: rgba(11,11,11,0.10);
+    --accent: #2a78d6;
+
+    --s-mlkem: #2a78d6;
+    --s-frodo: #008300;
+    --s-ntru: #e87ba4;
+    --s-sntrup: #eda100;
+    --s-ggh: #1baf7a;
+    --s-ntrufo: #eb6834;
+
+    --p-req: #2a78d6;   /* Receiver.request */
+    --p-tra: #eb6834;   /* Sender.transfer  */
+    --p-fin: #4a3aa7;   /* Receiver.finalize */
+
+    --d-pos: #2a78d6;   /* KeyGen domina (ratio > 1) */
+    --d-neg: #e34948;   /* sampler domina (ratio < 1) */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface: #1a1a19;
+      --plane: #0d0d0d;
+      --ink: #ffffff;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --ring: rgba(255,255,255,0.10);
+      --accent: #3987e5;
+      --s-mlkem: #3987e5;
+      --s-frodo: #008300;
+      --s-ntru: #d55181;
+      --s-sntrup: #c98500;
+      --s-ggh: #199e70;
+      --s-ntrufo: #d95926;
+      --p-req: #3987e5;
+      --p-tra: #d95926;
+      --p-fin: #9085e9;
+      --d-pos: #3987e5;
+      --d-neg: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface: #1a1a19;
+    --plane: #0d0d0d;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --ring: rgba(255,255,255,0.10);
+    --accent: #3987e5;
+    --s-mlkem: #3987e5;
+    --s-frodo: #008300;
+    --s-ntru: #d55181;
+    --s-sntrup: #c98500;
+    --s-ggh: #199e70;
+    --s-ntrufo: #d95926;
+    --p-req: #3987e5;
+    --p-tra: #d95926;
+    --p-fin: #9085e9;
+    --d-pos: #3987e5;
+    --d-neg: #e66767;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--plane);
+    color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 64px; }
+
+  header.page { margin-bottom: 28px; }
+  .eyebrow {
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 6px;
+  }
+  h1 {
+    font-size: 27px; font-weight: 700; letter-spacing: -0.015em;
+    margin: 0 0 8px; text-wrap: balance;
+  }
+  .sub { color: var(--ink-2); max-width: 66ch; margin: 0; }
+
+  .kpis {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; margin: 28px 0;
+  }
+  .tile {
+    background: var(--surface); border: 1px solid var(--ring);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .tile .lbl { font-size: 12.5px; color: var(--ink-2); margin-bottom: 4px; }
+  .tile .val { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+  .tile .note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--ring);
+    border-radius: 10px; padding: 20px 22px 16px; margin: 20px 0;
+  }
+  .card h2 { font-size: 17px; font-weight: 650; margin: 0 0 2px; }
+  .card .desc { font-size: 13.5px; color: var(--ink-2); margin: 0 0 14px; max-width: 78ch; }
+  .card .chip {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--ring); border-radius: 99px; padding: 2px 9px;
+    vertical-align: 2px; margin-left: 8px;
+  }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 6px 18px;
+    font-size: 12.5px; color: var(--ink-2); margin: 0 0 10px;
+  }
+  .legend .key { display: inline-flex; align-items: center; gap: 7px; }
+  .key .line { width: 16px; height: 2.5px; border-radius: 2px; }
+  .key .swatch { width: 11px; height: 11px; border-radius: 3px; }
+  .chart-box { overflow-x: auto; }
+  svg { display: block; }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .axis-tick { font-size: 11.5px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+  .axis-title { font-size: 11.5px; fill: var(--muted); }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .baseline-l { stroke: var(--baseline); stroke-width: 1; }
+  .row-lbl { font-size: 12.5px; fill: var(--ink); }
+  .end-lbl { font-size: 12px; fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .seg-lbl { font-size: 11px; fill: #ffffff; font-weight: 600; }
+  .direct-lbl { font-size: 12px; fill: var(--ink); font-weight: 600; }
+  .leader { stroke: var(--baseline); stroke-width: 1; }
+  .foot-note { font-size: 12.5px; color: var(--muted); margin: 12px 0 2px; max-width: 84ch; }
+
+  details.tbl { margin: 18px 0; }
+  details.tbl summary {
+    cursor: pointer; font-weight: 600; font-size: 14px;
+    color: var(--ink-2); padding: 8px 2px;
+  }
+  details.tbl summary:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--ring); border-radius: 8px; max-height: 520px; overflow-y: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; background: var(--surface); }
+  th, td { padding: 6px 12px; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--grid); position: sticky; top: 0;
+    background: var(--surface);
+  }
+  tbody td { border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  tbody td:first-child { color: var(--ink); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  footer.meta {
+    margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--grid);
+    font-size: 12.5px; color: var(--muted); max-width: 84ch;
+  }
+  footer.meta p { margin: 4px 0; }
+
+  #tooltip {
+    position: fixed; pointer-events: none; z-index: 10;
+    background: var(--surface); border: 1px solid var(--ring);
+    border-radius: 7px; padding: 8px 11px; font-size: 12.5px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+    opacity: 0; max-width: 280px;
+  }
+  #tooltip.on { opacity: 1; }
+  #tooltip .tt-title { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+  #tooltip .tt-row { display: flex; align-items: center; gap: 7px; margin: 2px 0; }
+  #tooltip .tt-key { width: 12px; height: 2.5px; border-radius: 2px; flex: none; }
+  #tooltip .tt-val { font-weight: 650; font-variant-numeric: tabular-nums; }
+  #tooltip .tt-name { color: var(--ink-2); }
+  @media (prefers-reduced-motion: no-preference) {
+    #tooltip { transition: opacity 120ms ease; }
+    .hoverable { transition: opacity 100ms ease; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">MODULAROT · benchmark 2026-07-18</p>
+    <h1>Scalabilità dell'OT 1-out-of-n su 11 KEM post-quantum</h1>
+    <p class="sub">Protocollo semi-honest KEM-agnostico: 1 KeyGen reale + (n−1) campionamenti
+    obliviosi lato Receiver, n Encaps + n sigilli AEAD lato Sender. Nove meccanismi liboqs
+    più i due KEM non convenzionali costruiti via Fujisaki-Okamoto (NTRU_FO, GGH_FO),
+    tutti verificati con lo stesso protocollo e lo stesso harness.</p>
+  </header>
+
+  <section class="kpis" aria-label="Indicatori principali">
+    <div class="tile"><div class="lbl">Sessioni OT verificate</div><div class="val">55 / 55</div><div class="note">corrette · sender-private</div></div>
+    <div class="tile"><div class="lbl">Meccanismi a confronto</div><div class="val">11</div><div class="note">6 famiglie matematiche</div></div>
+    <div class="tile"><div class="lbl">Intervallo tempo totale</div><div class="val">0,14 ms → 9,3 s</div><div class="note">NTRU-HPS n=2 → GGH_FO-200 n=32</div></div>
+    <div class="tile"><div class="lbl">Banda massima di sessione</div><div class="val">20,6 MB</div><div class="note">GGH_FO-200, n=32</div></div>
+  </section>
+
+  <section class="card">
+    <h2>Tempo totale di sessione al crescere dei rami</h2>
+    <p class="desc">Un rappresentante per famiglia, scala logaritmica: oltre quattro ordini di
+    grandezza tra NTRU-HRSS (liboqs) e GGH_FO. NTRU_FO (implementazione Python propria) è
+    ~100× più lento del corrispondente NTRU-HRSS di liboqs a parità di algoritmo — il costo
+    della trasformata FO scritta da zero, non della matematica.</p>
+    <div class="legend" id="legendA"></div>
+    <div class="chart-box"><svg id="chartA" role="img" aria-label="Grafico a linee: tempo totale in millisecondi rispetto al numero di rami n, una linea per famiglia KEM, scala logaritmica"></svg></div>
+  </section>
+
+  <section class="card">
+    <h2>Chi paga il costo: ripartizione per fase <span class="chip">n = 32</span></h2>
+    <p class="desc">Quota del tempo di sessione per fase, tutti gli 11 meccanismi. Quattro profili
+    distinti: Receiver-bound (ML-KEM, sntrup761), Sender-bound (FrodoKEM, NTRU, NTRU_FO),
+    e GGH_FO dove pesa la decapsulazione (Babai su matrici 200×200).</p>
+    <div class="legend" id="legendB"></div>
+    <div class="chart-box"><svg id="chartB" role="img" aria-label="Barre orizzontali impilate al 100%: quota di request, transfer e finalize sul tempo di sessione per ciascun KEM a n=32"></svg></div>
+  </section>
+
+  <section class="card">
+    <h2>Banda: chi trasmette quanto <span class="chip">n = 32</span></h2>
+    <p class="desc">Quota della banda di sessione per direzione. Le famiglie liboqs sono quasi
+    simmetriche; GGH_FO è l'anomalia netta: oltre il 99% della banda sono le 32 chiavi
+    pubbliche (matrici 200×200 piene, 16 byte/coefficiente), i ciphertext quasi spariscono.</p>
+    <div class="legend" id="legendC"></div>
+    <div class="chart-box"><svg id="chartC" role="img" aria-label="Barre orizzontali impilate al 100%: quota di banda Receiver verso Sender e Sender verso Receiver per ciascun KEM a n=32"></svg></div>
+  </section>
+
+  <section class="card">
+    <h2>KeyGen reale vs campionamento oblivioso</h2>
+    <p class="desc">Rapporto tra il costo di una KeyGen reale e di un campionamento oblivioso
+    (scala log, riferimento a 1×). La costante si ribalta tra famiglie: per ML-KEM il sampler
+    costa più della KeyGen (0,1×); per GGH_FO la KeyGen (Babai su matrice 200×200, ~4s) è oltre
+    100× più cara del sampler.</p>
+    <div class="legend" id="legendD"></div>
+    <div class="chart-box"><svg id="chartD" role="img" aria-label="Dot plot su scala logaritmica: rapporto tra costo di KeyGen e costo del campionamento oblivioso per ciascun KEM"></svg></div>
+    <p class="foot-note">Il ribaltamento su ML-KEM, sntrup761 e NTRU_FO è in parte un artefatto
+    d'implementazione: quei sampler girano in Python puro, in alcuni casi contro una KeyGen in
+    C di liboqs. Per GGH_FO il rapporto è invece dominato da un costo algoritmico reale (Babai
+    rounding su una matrice piena n×n).</p>
+  </section>
+
+  <details class="tbl">
+    <summary>Tabella completa — 11 KEM × n ∈ {2, 4, 8, 16, 32} (mediane su 3 run)</summary>
+    <div class="tbl-scroll"><table id="tableMain"></table></div>
+  </details>
+
+  <footer class="meta">
+    <p><strong>Metodologia.</strong> <code>benchmark_scaling.py</code>, mediane su 3 ripetizioni
+    per cella; warm-up per assorbire la lazy-init di liboqs; verifica avversariale di
+    sender-privacy eseguita fuori dalla regione temporizzata. Python 3.14 · liboqs 0.15 ·
+    macchina singola. NTRU_FO: implementazione propria (ring x^N−1, N=701, p=3, q=8192).
+    GGH_FO: implementazione propria, dimensione 200 (Nguyen-fix attivo) — istanza a scopo di
+    verifica del confine del framework, non un candidato di sicurezza reale (GGH è rotto da
+    Nguyen '99 a ogni dimensione pratica).</p>
+  </footer>
+</div>
+
+<div id="tooltip" role="status" aria-hidden="true"></div>
+
+<script>
+"use strict";
+
+/* ── data: kem, n, request_ms, transfer_ms, finalize_ms, total_ms,
+   pk_bytes, ct_bytes, total_bytes, keygen_ms, obliv_sample_ms, keygen_over_sample ── */
+
+const MAIN = [
+  ["ML-KEM-512",2,0.377,0.8204,0.0369,1.2383,1600,1626,3226,0.0217,0.2054,0.11],
+  ["ML-KEM-512",4,0.6239,0.1351,0.0339,0.7984,3200,3252,6452,0.0217,0.2054,0.11],
+  ["ML-KEM-512",8,1.4374,0.2629,0.0341,1.7357,6400,6504,12904,0.0217,0.2054,0.11],
+  ["ML-KEM-512",16,3.0551,0.5019,0.0337,3.6009,12800,13014,25814,0.0217,0.2054,0.11],
+  ["ML-KEM-512",32,6.273,1.0467,0.0371,7.4946,25600,26038,51638,0.0217,0.2054,0.11],
+  ["ML-KEM-768",2,0.4154,0.0941,0.0448,0.5614,2368,2266,4634,0.0225,0.2945,0.08],
+  ["ML-KEM-768",4,1.0106,0.1573,0.0402,1.2139,4736,4532,9268,0.0225,0.2945,0.08],
+  ["ML-KEM-768",8,2.4293,0.3156,0.0446,2.7912,9472,9064,18536,0.0225,0.2945,0.08],
+  ["ML-KEM-768",16,4.6547,0.5912,0.0395,5.2829,18944,18134,37078,0.0225,0.2945,0.08],
+  ["ML-KEM-768",32,9.4981,1.1454,0.0399,10.6891,37888,36278,74166,0.0225,0.2945,0.08],
+  ["ML-KEM-1024",2,0.452,0.0892,0.0439,0.5906,3136,3228,6364,0.0267,0.3988,0.07],
+  ["ML-KEM-1024",4,1.2491,0.1669,0.0441,1.4705,6272,6456,12728,0.0267,0.3988,0.07],
+  ["ML-KEM-1024",8,2.9,0.3324,0.0438,3.2767,12544,12912,25456,0.0267,0.3988,0.07],
+  ["ML-KEM-1024",16,6.1533,0.6403,0.0443,6.8437,25088,25830,50918,0.0267,0.3988,0.07],
+  ["ML-KEM-1024",32,12.744,1.2853,0.0471,14.0881,50176,51670,101846,0.0267,0.3988,0.07],
+  ["FrodoKEM-640-AES",2,0.2205,0.607,0.2875,1.1204,19232,19606,38838,0.2003,0.013,15.38],
+  ["FrodoKEM-640-AES",4,0.248,1.1969,0.2809,1.7296,38464,39212,77676,0.2003,0.013,15.38],
+  ["FrodoKEM-640-AES",8,0.2914,2.3514,0.2789,2.9271,76928,78424,155352,0.2003,0.013,15.38],
+  ["FrodoKEM-640-AES",16,0.3899,4.6973,0.2899,5.3875,153856,156854,310710,0.2003,0.013,15.38],
+  ["FrodoKEM-640-AES",32,0.5821,9.4766,0.2824,10.3461,307712,313718,621430,0.2003,0.013,15.38],
+  ["FrodoKEM-976-AES",2,0.4257,1.1922,0.5328,2.166,31264,31686,62950,0.3969,0.0199,19.97],
+  ["FrodoKEM-976-AES",4,0.5007,2.2865,0.5311,3.326,62528,63372,125900,0.3969,0.0199,19.97],
+  ["FrodoKEM-976-AES",8,0.58,5.2177,0.5314,6.3599,125056,126744,251800,0.3969,0.0199,19.97],
+  ["FrodoKEM-976-AES",16,0.7033,9.1651,0.5326,10.4084,250112,253494,503606,0.3969,0.0199,19.97],
+  ["FrodoKEM-976-AES",32,1.0389,19.1796,0.5399,20.7757,500224,506998,1007222,0.3969,0.0199,19.97],
+  ["FrodoKEM-1344-AES",2,0.7147,1.9034,0.8985,3.5926,43040,43496,86536,0.6731,0.027,24.95],
+  ["FrodoKEM-1344-AES",4,0.7706,3.8734,0.8995,5.5424,86080,86992,173072,0.6731,0.027,24.95],
+  ["FrodoKEM-1344-AES",8,0.8734,7.6292,0.8993,9.4128,172160,173984,346144,0.6731,0.027,24.95],
+  ["FrodoKEM-1344-AES",16,1.0967,15.1933,0.9025,17.2207,344320,347974,692294,0.6731,0.027,24.95],
+  ["FrodoKEM-1344-AES",32,1.525,30.7546,0.9097,33.1951,688640,695958,1384598,0.6731,0.027,24.95],
+  ["NTRU-HPS-2048-509",2,0.046,0.0654,0.0305,0.1454,1398,1502,2900,0.0376,0.0047,8.06],
+  ["NTRU-HPS-2048-509",4,0.0489,0.1128,0.0306,0.1973,2796,3004,5800,0.0376,0.0047,8.06],
+  ["NTRU-HPS-2048-509",8,0.0556,0.2216,0.0302,0.3104,5592,6008,11600,0.0376,0.0047,8.06],
+  ["NTRU-HPS-2048-509",16,0.0677,0.4285,0.0305,0.5318,11184,12022,23206,0.0376,0.0047,8.06],
+  ["NTRU-HPS-2048-509",32,0.0916,0.8474,0.0305,0.9741,22368,24054,46422,0.0376,0.0047,8.06],
+  ["NTRU-HRSS-701",2,0.0703,0.0634,0.036,0.1754,2276,2372,4648,0.0595,0.0036,16.68],
+  ["NTRU-HRSS-701",4,0.071,0.1173,0.0354,0.2288,4552,4744,9296,0.0595,0.0036,16.68],
+  ["NTRU-HRSS-701",8,0.0832,0.2325,0.0351,0.3519,9104,9488,18592,0.0595,0.0036,16.68],
+  ["NTRU-HRSS-701",16,0.0976,0.4568,0.0353,0.5945,18208,18982,37190,0.0595,0.0036,16.68],
+  ["NTRU-HRSS-701",32,0.1328,0.9218,0.0363,1.0958,36416,37974,74390,0.0595,0.0036,16.68],
+  ["sntrup761",2,4.2086,0.2034,0.169,4.5861,2316,2166,4482,3.5326,0.6293,5.61],
+  ["sntrup761",4,5.4225,0.3926,0.1718,6.0087,4632,4332,8964,3.5326,0.6293,5.61],
+  ["sntrup761",8,7.9066,0.7847,0.1706,8.8491,9264,8664,17928,3.5326,0.6293,5.61],
+  ["sntrup761",16,12.9827,1.5329,0.1771,14.7946,18528,17334,35862,3.5326,0.6293,5.61],
+  ["sntrup761",32,23.4237,3.0533,0.1715,26.7477,37056,34678,71734,3.5326,0.6293,5.61],
+  ["NTRU_FO-701",2,8.8141,2.3174,1.7361,13.0019,5608,5764,11372,8.0974,0.4183,19.36],
+  ["NTRU_FO-701",4,9.3371,4.954,1.7005,16.4883,11216,11528,22744,8.0974,0.4183,19.36],
+  ["NTRU_FO-701",8,11.0426,9.6361,1.7059,22.9483,22432,23056,45488,8.0974,0.4183,19.36],
+  ["NTRU_FO-701",16,14.237,19.8569,1.6935,35.8552,44864,46118,90982,8.0974,0.4183,19.36],
+  ["NTRU_FO-701",32,20.2787,39.4056,1.5752,61.3135,89728,92246,181974,8.0974,0.4183,19.36],
+  ["GGH_FO-200",2,4224.7335,39.7347,2848.7242,7114.9194,1280016,6554,1286570,4005.9787,39.2435,102.08],
+  ["GGH_FO-200",4,4430.5027,82.2009,2960.9507,7509.6824,2560032,13108,2573140,4005.9787,39.2435,102.08],
+  ["GGH_FO-200",8,4614.8993,184.4966,3034.2495,7833.6667,5120064,26216,5146280,4005.9787,39.2435,102.08],
+  ["GGH_FO-200",16,4876.688,357.0431,3021.3843,8255.1348,10240128,52438,10292566,4005.9787,39.2435,102.08],
+  ["GGH_FO-200",32,5496.5325,754.5287,3060.8668,9308.3031,20480256,104886,20585142,4005.9787,39.2435,102.08],
+];
+
+const FAMILY = k =>
+  k.startsWith("ML-KEM") ? "mlkem" :
+  k.startsWith("FrodoKEM") ? "frodo" :
+  k === "NTRU_FO-701" ? "ntrufo" :
+  k.startsWith("NTRU-") ? "ntru" :
+  k.startsWith("sntrup") ? "sntrup" : "ggh";
+
+const FCOLOR = { mlkem: "var(--s-mlkem)", frodo: "var(--s-frodo)", ntru: "var(--s-ntru)",
+                 sntrup: "var(--s-sntrup)", ggh: "var(--s-ggh)", ntrufo: "var(--s-ntrufo)" };
+
+/* ── helpers ───────────────────────────────────────────────────────────── */
+
+const SVGNS = "http://www.w3.org/2000/svg";
+function el(name, attrs, parent) {
+  const e = document.createElementNS(SVGNS, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(e, s) { e.textContent = s; return e; }
+const fmtMs = v => v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 1 : 2) + " s"
+  : v >= 100 ? Math.round(v) + " ms"
+  : v >= 10 ? v.toFixed(1) + " ms"
+  : v >= 1 ? v.toFixed(2) + " ms"
+  : v.toFixed(3) + " ms";
+const fmtB = b => b >= 1e6 ? (b / 1e6).toFixed(2) + " MB"
+  : b >= 1e3 ? (b >= 1e5 ? Math.round(b / 1e3) : (b / 1e3).toFixed(1)) + " KB"
+  : b + " B";
+
+const tooltip = document.getElementById("tooltip");
+function showTip(x, y, build) {
+  tooltip.replaceChildren();
+  build(tooltip);
+  tooltip.classList.add("on");
+  tooltip.setAttribute("aria-hidden", "false");
+  const r = tooltip.getBoundingClientRect();
+  let px = x + 14, py = y + 14;
+  if (px + r.width > innerWidth - 8) px = x - r.width - 14;
+  if (py + r.height > innerHeight - 8) py = y - r.height - 14;
+  tooltip.style.left = px + "px";
+  tooltip.style.top = py + "px";
+}
+function hideTip() {
+  tooltip.classList.remove("on");
+  tooltip.setAttribute("aria-hidden", "true");
+}
+function tipTitle(parent, s) {
+  const d = document.createElement("div");
+  d.className = "tt-title"; d.textContent = s; parent.appendChild(d);
+}
+function tipRow(parent, color, name, val) {
+  const row = document.createElement("div"); row.className = "tt-row";
+  const key = document.createElement("span"); key.className = "tt-key";
+  key.style.background = color;
+  const v = document.createElement("span"); v.className = "tt-val"; v.textContent = val;
+  const n = document.createElement("span"); n.className = "tt-name"; n.textContent = name;
+  row.append(key, v, n); parent.appendChild(row);
+}
+function legendItem(parent, color, label, kind) {
+  const k = document.createElement("span"); k.className = "key";
+  const sw = document.createElement("span");
+  sw.className = kind === "line" ? "line" : "swatch";
+  sw.style.background = color;
+  const t = document.createElement("span"); t.textContent = label;
+  k.append(sw, t); parent.appendChild(k);
+}
+
+/* ── chart A: total time vs n, log-log line chart ──────────────────────── */
+
+(function chartA() {
+  const keys = ["ML-KEM-768", "FrodoKEM-640-AES", "NTRU-HRSS-701", "sntrup761",
+                "NTRU_FO-701", "GGH_FO-200"];
+  const series = keys.map(key => ({
+    key, fam: FAMILY(key), color: FCOLOR[FAMILY(key)],
+    pts: MAIN.filter(r => r[0] === key).map(r => [r[1], r[5]]),
+  }));
+
+  const leg = document.getElementById("legendA");
+  for (const s of series) legendItem(leg, s.color, s.key, "line");
+
+  const W = 960, H = 400, L = 58, R = 150, T = 14, B = 44;
+  const pw = W - L - R, ph = H - T - B;
+  const svg = document.getElementById("chartA");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", "100%");
+
+  const NS = [2, 4, 8, 16, 32];
+  const x = n => L + (Math.log2(n) - 1) / 4 * pw;
+  const YMIN = 0.1, YMAX = 20000;
+  const yTicks = [0.1, 1, 10, 100, 1000, 10000];
+  const y = v => T + ph - (Math.log10(v) - Math.log10(YMIN)) / (Math.log10(YMAX) - Math.log10(YMIN)) * ph;
+
+  for (const tick of yTicks) {
+    el("line", { x1: L, x2: L + pw, y1: y(tick), y2: y(tick), class: "gridline" }, svg);
+    txt(el("text", { x: L - 8, y: y(tick) + 4, "text-anchor": "end", class: "axis-tick" }, svg),
+        tick < 1 ? tick.toFixed(1) : tick >= 1000 ? (tick / 1000) + "k" : String(tick));
+  }
+  el("line", { x1: L, x2: L + pw, y1: T + ph, y2: T + ph, class: "baseline-l" }, svg);
+  for (const n of NS) {
+    txt(el("text", { x: x(n), y: T + ph + 18, "text-anchor": "middle", class: "axis-tick" }, svg), String(n));
+  }
+  txt(el("text", { x: L + pw / 2, y: H - 6, "text-anchor": "middle", class: "axis-title" }, svg), "n (rami)");
+  txt(el("text", { x: 14, y: T + 2, class: "axis-title" }, svg), "ms · log");
+
+  for (const s of series) {
+    const d = s.pts.map((p, i) => (i ? "L" : "M") + x(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1)).join(" ");
+    el("path", { d, fill: "none", stroke: s.color, "stroke-width": 2,
+                 "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+    for (const p of s.pts) {
+      el("circle", { cx: x(p[0]), cy: y(p[1]), r: 4, fill: s.color,
+                     stroke: "var(--surface)", "stroke-width": 2 }, svg);
+    }
+  }
+
+  // direct end labels with collision resolution + leader lines
+  const ends = series.map(s => {
+    const last = s.pts[s.pts.length - 1];
+    return { s, yTrue: y(last[1]), yLbl: y(last[1]) };
+  }).sort((a, b) => a.yLbl - b.yLbl);
+  for (let i = 1; i < ends.length; i++) {
+    if (ends[i].yLbl - ends[i - 1].yLbl < 15) ends[i].yLbl = ends[i - 1].yLbl + 15;
+  }
+  for (const e of ends) {
+    const lx = L + pw + 26;
+    if (Math.abs(e.yLbl - e.yTrue) > 2) {
+      el("line", { x1: L + pw + 6, y1: e.yTrue, x2: lx - 4, y2: e.yLbl, class: "leader" }, svg);
+    }
+    const lbl = txt(el("text", { x: lx, y: e.yLbl + 4, class: "direct-lbl" }, svg), e.s.key);
+    lbl.setAttribute("fill", "var(--ink)");
+    const last = e.s.pts[e.s.pts.length - 1];
+    txt(el("text", { x: lx, y: e.yLbl + 17, class: "end-lbl" }, svg), fmtMs(last[1]));
+  }
+
+  // crosshair + tooltip
+  const hair = el("line", { y1: T, y2: T + ph, class: "baseline-l", opacity: 0 }, svg);
+  const hit = el("rect", { x: L, y: T, width: pw, height: ph, fill: "transparent" }, svg);
+  hit.addEventListener("pointermove", ev => {
+    const box = svg.getBoundingClientRect();
+    const mx = (ev.clientX - box.left) / box.width * W;
+    let best = NS[0], bd = Infinity;
+    for (const n of NS) { const d = Math.abs(x(n) - mx); if (d < bd) { bd = d; best = n; } }
+    hair.setAttribute("x1", x(best)); hair.setAttribute("x2", x(best));
+    hair.setAttribute("opacity", 1);
+    showTip(ev.clientX, ev.clientY, tt => {
+      tipTitle(tt, "1-out-of-" + best + " — tempo totale");
+      for (const s of series) {
+        const p = s.pts.find(q => q[0] === best);
+        tipRow(tt, s.color, s.key, p ? fmtMs(p[1]) : "—");
+      }
+    });
+  });
+  hit.addEventListener("pointerleave", () => { hair.setAttribute("opacity", 0); hideTip(); });
+})();
+
+/* ── charts B & C: 100% stacked horizontal bars ────────────────────────── */
+
+function stacked100(svgId, legendId, rows, parts, endLabel, tipHeader) {
+  const leg = document.getElementById(legendId);
+  for (const p of parts) legendItem(leg, p.color, p.label, "swatch");
+
+  const W = 960, LBL = 178, RGT = 86, RH = 24, GAP = 8, T = 6;
+  const H = T + rows.length * (RH + GAP) + 4;
+  const pw = W - LBL - RGT;
+  const svg = document.getElementById(svgId);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", "100%");
+
+  rows.forEach((row, i) => {
+    const yTop = T + i * (RH + GAP);
+    el("circle", { cx: 12, cy: yTop + RH / 2, r: 4.5, fill: FCOLOR[FAMILY(row.name)] }, svg);
+    const nameLbl = txt(el("text", { x: 24, y: yTop + RH / 2 + 4, class: "row-lbl" }, svg), row.name);
+    nameLbl.setAttribute("fill", "var(--ink)");
+
+    const total = row.vals.reduce((a, b) => a + b, 0);
+    let cx = LBL;
+    row.vals.forEach((v, j) => {
+      const wRaw = v / total * pw;
+      const w = Math.max(wRaw - 2, 0.5);          // 2px surface gap between segments
+      const rect = el("rect", {
+        x: cx.toFixed(1), y: yTop, width: w.toFixed(1), height: RH,
+        fill: parts[j].color, class: "hoverable",
+      }, svg);
+      if (j === row.vals.length - 1) rect.setAttribute("rx", 3);
+      const pct = v / total * 100;
+      if (wRaw > 48) {
+        txt(el("text", { x: cx + w / 2, y: yTop + RH / 2 + 4,
+                         "text-anchor": "middle", class: "seg-lbl" }, svg),
+            Math.round(pct) + "%");
+      }
+      const show = ev => showTip(ev.clientX, ev.clientY, tt => {
+        tipTitle(tt, row.name + " · " + tipHeader);
+        tipRow(tt, parts[j].color, parts[j].label,
+               parts[j].fmt(v) + " (" + (pct < 1 ? pct.toFixed(1) : Math.round(pct)) + "%)");
+      });
+      rect.addEventListener("pointermove", show);
+      rect.addEventListener("pointerenter", () => rect.setAttribute("opacity", 0.82));
+      rect.addEventListener("pointerleave", () => { rect.setAttribute("opacity", 1); hideTip(); });
+      cx += wRaw;
+    });
+
+    txt(el("text", { x: LBL + pw + 10, y: yTop + RH / 2 + 4, class: "end-lbl" }, svg),
+        endLabel(total, row));
+  });
+}
+
+const AT32 = MAIN.filter(r => r[1] === 32);
+
+stacked100("chartB", "legendB",
+  AT32.map(r => ({ name: r[0], vals: [r[2], r[3], r[4]] })),
+  [
+    { label: "Receiver.request (KeyGen + campionamento)", color: "var(--p-req)", fmt: fmtMs },
+    { label: "Sender.transfer (n Encaps + AEAD)",         color: "var(--p-tra)", fmt: fmtMs },
+    { label: "Receiver.finalize (Decaps + AEAD)",         color: "var(--p-fin)", fmt: fmtMs },
+  ],
+  t => fmtMs(t), "fasi a n=32");
+
+stacked100("chartC", "legendC",
+  AT32.map(r => ({ name: r[0], vals: [r[6], r[7]] })),
+  [
+    { label: "R → S: n chiavi pubbliche",        color: "var(--p-req)", fmt: fmtB },
+    { label: "S → R: n ciphertext + sigilli",    color: "var(--p-tra)", fmt: fmtB },
+  ],
+  t => fmtB(t), "banda a n=32");
+
+/* ── chart D: keygen/sample ratio dot plot, log x ──────────────────────── */
+
+(function chartD() {
+  const leg = document.getElementById("legendD");
+  legendItem(leg, "var(--d-pos)", "KeyGen più costosa (ratio > 1)", "swatch");
+  legendItem(leg, "var(--d-neg)", "Campionamento più costoso (ratio < 1)", "swatch");
+
+  const rows = MAIN.filter(r => r[1] === 2)
+    .map(r => ({ name: r[0], keygen: r[9], sample: r[10], ratio: r[11] }));
+
+  const W = 960, LBL = 178, RGT = 36, RH = 27, T = 8, B = 40;
+  const H = T + rows.length * RH + B;
+  const pw = W - LBL - RGT;
+  const svg = document.getElementById("chartD");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", "100%");
+
+  const XMIN = 0.04, XMAX = 150;
+  const x = v => LBL + (Math.log10(v) - Math.log10(XMIN)) / (Math.log10(XMAX) - Math.log10(XMIN)) * pw;
+
+  for (const tick of [0.1, 1, 10, 100]) {
+    el("line", { x1: x(tick), x2: x(tick), y1: T, y2: T + rows.length * RH,
+                 class: tick === 1 ? "baseline-l" : "gridline" }, svg);
+    txt(el("text", { x: x(tick), y: T + rows.length * RH + 18,
+                     "text-anchor": "middle", class: "axis-tick" }, svg),
+        tick === 0.1 ? "0,1×" : tick + "×");
+  }
+  txt(el("text", { x: LBL + pw / 2, y: H - 4, "text-anchor": "middle", class: "axis-title" }, svg),
+      "KeyGen ÷ campionamento oblivioso (scala log)");
+
+  rows.forEach((row, i) => {
+    const cy = T + i * RH + RH / 2;
+    el("circle", { cx: 12, cy, r: 4.5, fill: FCOLOR[FAMILY(row.name)] }, svg);
+    const nameLbl = txt(el("text", { x: 24, y: cy + 4, class: "row-lbl" }, svg), row.name);
+    nameLbl.setAttribute("fill", "var(--ink)");
+
+    const cxp = x(Math.min(Math.max(row.ratio, XMIN), XMAX));
+    const col = row.ratio >= 1 ? "var(--d-pos)" : "var(--d-neg)";
+    el("line", { x1: x(1), x2: cxp, y1: cy, y2: cy, stroke: col,
+                 "stroke-width": 1.5, opacity: 0.35 }, svg);
+    el("circle", { cx: cxp, cy, r: 6, fill: col, stroke: "var(--surface)", "stroke-width": 2 }, svg);
+
+    const right = cxp < LBL + pw * 0.8;
+    txt(el("text", { x: right ? cxp + 12 : cxp - 12, y: cy + 4,
+                     "text-anchor": right ? "start" : "end", class: "end-lbl" }, svg),
+        String(row.ratio).replace(".", ",") + "×");
+
+    const hit = el("rect", { x: LBL, y: cy - RH / 2, width: pw, height: RH, fill: "transparent" }, svg);
+    const show = ev => showTip(ev.clientX, ev.clientY, tt => {
+      tipTitle(tt, row.name);
+      tipRow(tt, col, "rapporto", String(row.ratio).replace(".", ",") + "×");
+      tipRow(tt, "var(--d-pos)", "KeyGen reale", fmtMs(row.keygen));
+      tipRow(tt, "var(--d-neg)", "campionamento", fmtMs(row.sample));
+    });
+    hit.addEventListener("pointermove", show);
+    hit.addEventListener("pointerleave", hideTip);
+  });
+})();
+
+/* ── table ─────────────────────────────────────────────────────────────── */
+
+const COLS = ["KEM", "n", "request (ms)", "transfer (ms)", "finalize (ms)", "totale (ms)",
+              "pk (B)", "ct (B)", "totale (B)", "KeyGen (ms)", "sampler (ms)", "KeyGen/sampler"];
+
+function buildTable(id, data) {
+  const table = document.getElementById(id);
+  const thead = document.createElement("thead");
+  const hr = document.createElement("tr");
+  for (const c of COLS) {
+    const th = document.createElement("th"); th.textContent = c; hr.appendChild(th);
+  }
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody = document.createElement("tbody");
+  for (const r of data) {
+    const tr = document.createElement("tr");
+    r.forEach((v, i) => {
+      const td = document.createElement("td");
+      td.textContent = typeof v === "number" && i >= 6 && i <= 8
+        ? v.toLocaleString("it-IT") : String(v).replace(".", ",");
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+}
+buildTable("tableMain", MAIN);
+</script>

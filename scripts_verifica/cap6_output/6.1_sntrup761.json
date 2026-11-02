@@ -1,0 +1,96 @@
+{
+  "family": "sntrup761",
+  "label": "sntrup761",
+  "section": "subsec:cap7-ind-sntrup761",
+  "kind": "coeff",
+  "unit": "coefficiente",
+  "n_keys": 200,
+  "domain": [
+    0,
+    4591
+  ],
+  "k_classes": 4591,
+  "passo1": {
+    "name": "verifica strutturale  Encode(Decode(pk))==pk",
+    "mismatch": 0,
+    "checked": 200,
+    "encaps_accept": 200,
+    "encaps_total": 200,
+    "pass": true
+  },
+  "pool_size": [
+    152200,
+    152200
+  ],
+  "passo2": {
+    "name": "test primario Kolmogorov-Smirnov",
+    "D": 0.007750000000000035,
+    "D_at": 3809,
+    "n": 20000,
+    "m": 20000,
+    "n_eff": null,
+    "threshold": 0.013580000000000002,
+    "c_alpha": 1.358,
+    "alpha": 0.05,
+    "reject": false,
+    "p_value": 0.5837384732151394,
+    "reject_fraction": 0.0,
+    "reps": 9,
+    "D_runs": [
+      0.005650000000000016,
+      0.005750000000000005,
+      0.005950000000000011,
+      0.006000000000000005,
+      0.007750000000000035,
+      0.008000000000000007,
+      0.009000000000000008,
+      0.009599999999999942,
+      0.011400000000000021
+    ],
+    "pass": true
+  },
+  "passo3": {
+    "name": "test secondario Pearson chi^2",
+    "real": {
+      "chi2": 4438.102877792378,
+      "df": 4590,
+      "n": 152200,
+      "crit": 4748.725868333394,
+      "reject": false,
+      "alpha": 0.05,
+      "exp_per_class": 33.15181877586583
+    },
+    "obl": {
+      "chi2": 4636.161392904073,
+      "df": 4590,
+      "n": 152200,
+      "crit": 4748.725868333394,
+      "reject": false,
+      "alpha": 0.05,
+      "exp_per_class": 33.15181877586583
+    },
+    "noise_band": 479.0615826801394,
+    "coherent": true,
+    "pass": true
+  },
+  "passo4": {
+    "name": "metriche descrittive",
+    "real": {
+      "shannon": 12.143425058243999,
+      "shannon_max": 12.164592716712367,
+      "H_inf_mcv": 10.915798930068783,
+      "H_inf_plugin": 11.332965783916428,
+      "p_hat": 0.0003876478318002628,
+      "max_bits": 12.164592716712367
+    },
+    "obl": {
+      "shannon": 12.142481960107165,
+      "shannon_max": 12.164592716712367,
+      "H_inf_mcv": 11.02724034190163,
+      "H_inf_plugin": 11.4607213311148,
+      "p_hat": 0.000354796320630749,
+      "max_bits": 12.164592716712367
+    }
+  },
+  "verdict": "nessun distinguisher trovato"
+}

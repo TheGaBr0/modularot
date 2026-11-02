@@ -1,0 +1,19 @@
+% generato da scripts_verifica/cap6_1_campionatori.py
+\begin{table}[H]
+\centering\small
+\begin{tabular}{@{}lrrcrrrrc@{}}
+\toprule
+\textbf{Schema} & $D_{n,m}$ & soglia & rig. & $\chi^2$ r/o & crit & $H$ obl & $H_\infty$ obl & esito \\
+\midrule
+ML-KEM-768 & 0.0081 & 0.0136 & no & 3254 / 3340 & 3463 & 11.69 & 10.59 & ok \\
+FrodoKEM-640-AES & 0.0094 & 0.0136 & no & 246 / 261 & 293 & 8.00 & 7.91 & ok \\
+NTRU-HPS-2048-509 & 0.0076 & 0.0136 & no & 2050 / 2080 & 2153 & 10.99 & 9.98 & ok \\
+NTRU-HRSS-701 & 0.0078 & 0.0136 & no & 8035 / 8102 & 8403 & 12.96 & 11.52 & ok \\
+sntrup761 & 0.0078 & 0.0136 & no & 4438 / 4636 & 4749 & 12.14 & 11.03 & ok \\
+NTRU\_FO-701 & 0.0069 & 0.0136 & no & 8045 / 8182 & 8403 & 12.96 & 11.48 & ok \\
+GGH\_FO-100 & 0.0084 & 0.1358 & no & 12 / 9 & 25 & 4.00 & 3.85 & ok \\
+\bottomrule
+\end{tabular}
+\caption{Sezione~6.1: esito dei quattro passi per ciascun campionatore. $\chi^2$ r/o = valore su chiavi reali / oblivious; soglia $\chi^2$ di Wilson-Hilferty ad $\alpha=0{,}05$.}
+\label{tab:cap6-verifica-campionatori}
+\end{table}

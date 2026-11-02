@@ -1,0 +1,96 @@
+{
+  "family": "FrodoKEM",
+  "label": "FrodoKEM-640-AES",
+  "section": "subsec:cap7-ind-frodokem",
+  "kind": "coeff",
+  "unit": "byte",
+  "n_keys": 200,
+  "domain": [
+    0,
+    256
+  ],
+  "k_classes": 256,
+  "passo1": {
+    "name": "verifica strutturale  Encode(Decode(pk))==pk",
+    "mismatch": 0,
+    "checked": 200,
+    "encaps_accept": 200,
+    "encaps_total": 200,
+    "pass": true
+  },
+  "pool_size": [
+    1923200,
+    1923200
+  ],
+  "passo2": {
+    "name": "test primario Kolmogorov-Smirnov",
+    "D": 0.00935000000000008,
+    "D_at": 188,
+    "n": 20000,
+    "m": 20000,
+    "n_eff": null,
+    "threshold": 0.013580000000000002,
+    "c_alpha": 1.358,
+    "alpha": 0.05,
+    "reject": false,
+    "p_value": 0.34481118903056057,
+    "reject_fraction": 0.0,
+    "reps": 9,
+    "D_runs": [
+      0.003799999999999998,
+      0.005850000000000022,
+      0.006700000000000039,
+      0.007050000000000001,
+      0.00935000000000008,
+      0.009699999999999986,
+      0.010300000000000087,
+      0.01094999999999996,
+      0.012199999999999989
+    ],
+    "pass": true
+  },
+  "passo3": {
+    "name": "test secondario Pearson chi^2",
+    "real": {
+      "chi2": 245.698768718802,
+      "df": 255,
+      "n": 1923200,
+      "crit": 293.24655165193656,
+      "reject": false,
+      "alpha": 0.05,
+      "exp_per_class": 7512.5
+    },
+    "obl": {
+      "chi2": 261.0025956738769,
+      "df": 255,
+      "n": 1923200,
+      "crit": 293.24655165193656,
+      "reject": false,
+      "alpha": 0.05,
+      "exp_per_class": 7512.5
+    },
+    "noise_band": 112.91589790636215,
+    "coherent": true,
+    "pass": true
+  },
+  "passo4": {
+    "name": "metriche descrittive",
+    "real": {
+      "shannon": 7.99990792611305,
+      "shannon_max": 8.0,
+      "H_inf_mcv": 7.910087760063043,
+      "H_inf_plugin": 7.951564174177501,
+      "p_hat": 0.0040396214642262895,
+      "max_bits": 8.0
+    },
+    "obl": {
+      "shannon": 7.999902151855721,
+      "shannon_max": 8.0,
+      "H_inf_mcv": 7.912652852640557,
+      "H_inf_plugin": 7.954166304562457,
+      "p_hat": 0.004032341930116473,
+      "max_bits": 8.0
+    }
+  },
+  "verdict": "nessun distinguisher trovato"
+}

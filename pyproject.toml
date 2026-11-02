@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modularot"
+version = "0.1.0"
+description = "Modular KEM-based 1-out-of-n Oblivious Transfer (semi-honest), agnostic to the underlying post-quantum KEM"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Gabriele Bottani" }]
+dependencies = [
+    "cryptography>=41.0",
+    "liboqs-python",
+]
+
+[project.optional-dependencies]
+# NTRU_FO and GGH_FO (the non-standardized, FO-transformed KEMs in
+# modularot.custom_kems) are research code with extra native dependencies --
+# not needed for the core liboqs-backed OT.
+custom-kems = [
+    "python-flint>=0.5",
+    "GGH_crypto>=1.0.5",
+    "numpy",
+]
+
+[project.scripts]
+modularot = "modularot.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["modularot*"]
