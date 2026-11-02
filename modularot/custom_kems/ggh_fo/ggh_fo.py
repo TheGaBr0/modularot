@@ -6,22 +6,6 @@ with GGH_private=True). The message IS the error vector; encryption is the
 deterministic reduction of that vector into the fundamental region of the
 public HNF basis. NOT quantum-safe -- educational/research only.
 
-Why HNF instead of B = U*R
-──────────────────────────
-A classic GGH public basis B = U*R has trapdoor-defined statistics (exact
-det, heavy-tailed entries, small rows), so no trapdoor-free sampler can imitate
-it and a real pk is trivially distinguishable from an oblivious one (see
-tests/test_ggh_versions.py).
-
-The HNF is a canonical form of the lattice. It reveals only det, the cokernel
-(diagonal) and the reduced column entries, all of which can be sampled without
-a trapdoor (oblivious_sampling.sample_oblivious_ggh_hnf). Distinguishing then
-needs a planted-short-basis (uSVP-style) decisional assumption.
-
-GGH_private=True is required: otherwise anyone can LLL the public HNF and
-recover a good basis. It plants R = k*I + E, E uniform in [-n, n-1],
-k = n*ceil(sqrt(n)+1). GGH stays concretely attackable at teaching dimensions.
-
 Scheme
 ──────
 KeyGen(n):
