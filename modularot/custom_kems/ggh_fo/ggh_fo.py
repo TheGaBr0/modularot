@@ -1,5 +1,3 @@
-"""GGH-HNF KEM with the Fujisaki-Okamoto transform. Educational, not quantum-safe."""
-
 import functools
 import hashlib
 import math
