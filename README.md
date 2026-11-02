@@ -1,5 +1,5 @@
 # Project Overview
-This project was developed as part of a 3-year degree program at the Università degli Studi di Milano (University of Milan). It provides a modular implementation of a semi-honest 1-out-of-*n* Oblivious Transfer (OT) built on Key Encapsulation Mechanisms (KEMs), together with an empirical analysis of how well the construction adapts to different post-quantum lattice families. The work does not claim a new protocol: it validates the modularity of the construction across heterogeneous KEMs (structured, unstructured, NTRU-based and GGH-based), measuring cost and bandwidth as the number of branches grows.
+This project was developed as part of a 2-year master's degree program at the Università degli Studi di Milano (University of Milan), following a 3-year bachelor's. It provides a modular implementation of a semi-honest 1-out-of-*n* Oblivious Transfer (OT) built on Key Encapsulation Mechanisms (KEMs), together with an empirical analysis of how well the construction adapts to different post-quantum lattice families. The work does not claim a new protocol: it validates the modularity of the construction across heterogeneous KEMs (structured, unstructured, NTRU-based and GGH-based), measuring cost and bandwidth as the number of branches grows.
 
 # modularot Python Package
 The OT protocol never names a specific scheme. The only KEM-specific operation, sampling an *oblivious* public key (a well-formed key whose secret nobody holds), is injected as a callable. This is necessarily KEM-specific: a black-box KEM cannot yield a sender-private OT (Gertner, Kannan, Malkin, Reingold, Viswanathan, FOCS 2000).
@@ -16,7 +16,7 @@ The package is composed of:
 - `custom_kems/` which contains two research-grade KEMs built from scratch with the Fujisaki-Okamoto transform: `NTRU_FO` and `GGH_FO`.
 - `cli.py` which provides the `modularot` command (`run`, `bench`, `list-kems`).
 
-GGH is supported in its HNF form (Micciancio's variant, via [GGH_crypto](https://github.com/TheGaBr0/GGH) with `GGH_private=True`) because it is the only GGH format whose public key admits a sound oblivious sampler. The classic `B = U·R` public basis is distinguishable from any trapdoor-free sample by its determinant alone; `tests/test_ggh_versions.py` demonstrates all three variants.
+GGH is supported in its HNF form (Micciancio's variant, via [GGH_crypto](https://github.com/TheGaBr0/GGH) with `GGH_private=True`) because it is the only GGH format whose public key admits a sound oblivious sampler. The classic `B = U·R` public basis is distinguishable from any trapdoor-free sample by its determinant alone.
 
 # Installation
 ```
@@ -58,10 +58,7 @@ modularot bench --ns 2 4 8 16 32 --reps 5 --csv out.csv
 ```
 `run` performs one real transfer. `bench` reports per-phase timing and bandwidth for each KEM across branch counts and writes a CSV.
 
-Other material in this repository:
-- `benchmark_scaling.py`, `ot_scaling_full.csv`, `ot_scaling_ggh.csv`, `benchmark_report.html`: the scaling benchmark and its results.
-- `scripts_verifica/`: the verification suite for the thesis (samplers, GGH variants, adversarial tests, comparative analysis). See `scripts_verifica/README_cap6.md`.
-- `tests/`: tests for NTRU_FO and the GGH variants.
+Tests, benchmarks and thesis material live in the [main branch](https://github.com/TheGaBr0/modularot/tree/main).
 
 # Scope and limits
 Semi-honest security only. `resolve_oqs` raises `NotImplementedError` for lattice mechanisms whose encoding is not wired yet (e.g. `ntrulpr`). `is_supported_oqs(alg)` checks in advance. NTRU_FO and GGH_FO are educational/research code and are **not** quantum-safe or production-ready (GGH remains concretely attackable at any practical dimension).
@@ -70,5 +67,3 @@ An observed result: the cost of the oblivious sampler relative to a real KeyGen 
 
 # References and final notes
 Gertner, Kannan, Malkin, Reingold, Viswanathan, *The Relationship between Public Key Encryption and Oblivious Transfer*, FOCS 2000. Even, Goldreich, Lempel, *A Randomized Protocol for Signing Contracts*, 1985. Peikert, Vaikuntanathan, Waters, *A Framework for Efficient and Composable Oblivious Transfer*, CRYPTO 2008. Micciancio, *Improving Lattice Based Cryptosystems Using the Hermite Normal Form*, 2001.
-
-Some internal notes and the verification scripts (`RESOCONTO_GGH.md`, `scripts_verifica/`) are written in Italian.
