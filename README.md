@@ -1,5 +1,8 @@
 # Project Overview
-This project was developed as part of a 2-year master's degree program at the Università degli Studi di Milano (University of Milan), following a 3-year bachelor's. It provides a modular implementation of a semi-honest 1-out-of-*n* Oblivious Transfer (OT) built on Key Encapsulation Mechanisms (KEMs), together with an empirical analysis of how well the construction adapts to different post-quantum lattice families. The work proposes a new KEM-agnostic OT scheme: sender privacy comes from oblivious public-key sampling, the only KEM-specific step, which is injected as a callable. The scheme is then validated across heterogeneous KEMs (structured, unstructured, NTRU-based and GGH-based), measuring indistinguishability, cost and bandwidth as the number of branches grows.
+This project was developed as part of a 2-year master's degree program at the Università degli Studi di Milano (University of Milan), following a 3-year bachelor's. It provides a modular implementation of a semi-honest 1-out-of-*n* Oblivious Transfer (OT) built on Key Encapsulation Mechanisms (KEMs), together with an empirical analysis of how well the construction adapts to different post-quantum lattice families. Building on the oblivious public-key technique [1]-[5], the work proposes a new KEM-agnostic 1-out-of-*n* OT scheme in which sampling an oblivious key is the only KEM-specific step, injected as a callable. The scheme is validated across heterogeneous KEMs (structured, unstructured, NTRU-based and GGH-based), measuring indistinguishability, cost and bandwidth as the number of branches grows.
+
+## Attribution
+Oblivious public-key sampling is **not** a contribution of this work. Having the receiver publish a key for which it knows no secret key goes back to Even, Goldreich and Lempel [1] and Bellare and Micali [2]. Naor and Pinkas [3] use it to build OT from public-key encryption, Peikert, Vaikuntanathan and Waters [4] generalize it with dual-mode cryptosystems, and Masny and Rindal [5] formalize it for any two-message KEM, with post-quantum instantiations. Gertner et al. [6] show that some such non-black-box property is unavoidable: no OT reduces black-box to a KEM or an IND-CPA PKE. What this work adds is the generalization to *n* branches, concrete samplers for several lattice families (ML-KEM, FrodoKEM, NTRU-HPS/HRSS, sntrup761, NTRU_FO, GGH-HNF) and an empirical validation of the construction.
 
 # modularot Python Package
 The package itself (source code, `pyproject.toml`, installation and usage instructions) lives in the [release branch](https://github.com/TheGaBr0/modularot/tree/release). This branch holds the thesis material built around it.
@@ -38,5 +41,13 @@ The remaining figures are in [`figures/`](figures):
 - Component reuse: [GGH_FO](figures/mix_and_match_gghfo.png)
 - Protocol cost: [time per phase at n = 32](figures/cap7_tempi_per_fase.png), [bandwidth at n = 32](figures/cap7_occupazione_banda.png)
 
-# References and final notes
+# References
+[1] S. Even, O. Goldreich, A. Lempel. *A Randomized Protocol for Signing Contracts*. Communications of the ACM 28(6), 1985, pp. 637-647.
+[2] M. Bellare, S. Micali. *Non-Interactive Oblivious Transfer and Applications*. CRYPTO '89, LNCS 435, 1989, pp. 547-557.
+[3] M. Naor, B. Pinkas. *Efficient Oblivious Transfer Protocols*. SODA 2001, pp. 448-457.
+[4] C. Peikert, V. Vaikuntanathan, B. Waters. *A Framework for Efficient and Composable Oblivious Transfer*. CRYPTO 2008, LNCS 5157, pp. 554-571.
+[5] D. Masny, P. Rindal. *Endemic Oblivious Transfer*. ACM CCS 2019, pp. 309-326.
+[6] Y. Gertner, S. Kannan, T. Malkin, O. Reingold, M. Viswanathan. *The Relationship between Public Key Encryption and Oblivious Transfer*. FOCS 2000, pp. 325-335.
+[7] D. Micciancio. *Improving Lattice Based Cryptosystems Using the Hermite Normal Form*. 2001, pp. 126-145.
+
 The thesis is written in Italian.
