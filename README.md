@@ -7,6 +7,11 @@ Oblivious public-key sampling is **not** a contribution of this work. Having the
 # modularot Python Package
 The package itself (source code, `pyproject.toml`, installation and usage instructions) lives in the [release branch](https://github.com/TheGaBr0/modularot/tree/release). This branch holds the thesis material built around it.
 
+## Architecture
+The protocol classes only see the `KEM` interface and a sampler. `KEMAdapter` wraps any backend (liboqs, GGH_FO, NTRU_FO) by delegation, and `oblivious_sampling` supplies the per-scheme sampler.
+
+![Architecture of the framework](assets/architecture.png)
+
 # Experimental results
 The figures come from the verification suite and the scaling benchmark of the package. They are the thesis figures with English labels (data unchanged).
 
