@@ -6,6 +6,9 @@ How it works:
 2. The sender encapsulates under each key and seals message *i* with ChaCha20-Poly1305, keyed from the shared secret via HKDF.
 3. The receiver decapsulates only the chosen branch. It holds no secret for the others, so those messages stay hidden.
 
+## Architecture
+![Architecture](docs/architecture.png)
+
 The package is composed of:
 - `ot_protocol.py` which implements `OTSender`, `OTReceiver` and `run_ot`, plus an adversarial check that a curious receiver cannot open any other branch.
 - `oblivious_sampling.py` which contains the per-family oblivious samplers: ML-KEM / Kyber, FrodoKEM, NTRU-HPS / HRSS, sntrup761, and the custom NTRU_FO and GGH-HNF.
