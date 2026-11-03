@@ -7,10 +7,10 @@ Oblivious public-key sampling is **not** a contribution of this work. Having the
 # modularot Python Package
 The package itself (source code, `pyproject.toml`, installation and usage instructions) lives in the [release branch](https://github.com/TheGaBr0/modularot/tree/release). This branch holds the thesis material built around it.
 
-## Architecture
-The protocol classes only see the `KEM` interface and a sampler. `KEMAdapter` wraps any backend (liboqs, GGH_FO, NTRU_FO) by delegation, and `oblivious_sampling` supplies the per-scheme sampler.
+## The OT scheme
+Receiver and sender run the KEM-based 1-out-of-2 protocol below (the *n*-branch version repeats the sender step for every public key). The receiver keeps a real keypair only for its choice bit and fills the other slot with an oblivious public key; the sender encapsulates under both keys and seals each message with an AEAD whose key, nonce and associated data are derived from the shared secret, the session id and the key fingerprint.
 
-![Architecture of the framework](assets/architecture.png)
+![OT protocol](assets/ot_protocol.png)
 
 # Experimental results
 The figures come from the verification suite and the scaling benchmark of the package. They are the thesis figures with English labels (data unchanged).
