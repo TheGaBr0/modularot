@@ -17,7 +17,7 @@ Security (semi-honest):
       a union bound over the n-1 hidden branches covers the receiver's whole
       view, since secrets for oblivious keys never exist.
 
-Cost (see benchmark_scaling.py):
+Cost:
     * Receiver: 1 KeyGen + (n-1) oblivious samples + 1 Decaps. The samplers
       are pure Python, so they dominate for cheap-KeyGen KEMs (ML-KEM) and
       KeyGen dominates for FrodoKEM and NTRU.

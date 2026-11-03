@@ -148,8 +148,8 @@ def sample_oblivious_ntru_fo(real_pk: bytes, q: int = 8192) -> bytes:
 # ── GGH-HNF (custom library) ─────────────────────────────────────────────────
 #
 # Classic GGH (pk = basis B = U·R) is refused: det B, entry marginals and row
-# norms separate real keys from any trapdoor-free sample (see
-# tests/test_ggh_versions.py), and no pseudorandomness assumption exists.
+# norms separate real keys from any trapdoor-free sample, and no
+# pseudorandomness assumption exists.
 #
 # The HNF variant (ggh_fo, GGH_private=True) publishes HNF(L), a canonical form
 # revealing only det, the cokernel (HNF diagonal) and reduced column entries.

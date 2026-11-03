@@ -60,7 +60,7 @@ def _ntrufo_entry(N: int, q: int = 8192, p: int = 3):
 def _gghfo_entry(dimension: int):
     """(label, kem_factory, sampler) for GGH-HNF FO (GGH_private=True). Needs
     `pip install modularot[custom-kems]`; dimension=200 is teaching-scale.
-    Classic GGH has no sound oblivious sampler (see tests/test_ggh_versions.py)."""
+    Classic GGH has no sound oblivious sampler."""
     from .custom_kems.ggh_fo import ggh_fo
     from .oblivious_sampling import sample_oblivious_ggh_hnf
 
