@@ -58,5 +58,31 @@ modularot bench --ns 2 4 8 16 32 --reps 5 --csv out.csv
 ```
 `run` performs one real transfer. `bench` reports per-phase timing and bandwidth for each KEM across branch counts and writes a CSV.
 
+# Adding a new KEM
+A KEM plugs in through two pieces: a `KEMAdapter` around its three operations, and an oblivious sampler. This is how NTRU_FO is wired:
+```python
+from modularot import KEMAdapter, run_ot
+from modularot.custom_kems.ntru_fo.ntru_fo import NTRU_FO
+from modularot.oblivious_sampling import sample_oblivious_ntru_fo
+
+Q = 8192
+
+def make_kem():
+    impl = NTRU_FO(N=701, p=3, q=Q)          # fresh, independent instance per call
+    return KEMAdapter(gen=impl.generate_keys,    # () -> (pk, sk)
+                      encap=impl.encapsulate,    # pk -> (ss, ct)
+                      decap=impl.decapsulate)    # (sk, ct) -> ss
+
+def sampler(real_pk: bytes) -> bytes:
+    return sample_oblivious_ntru_fo(real_pk, q=Q)   # real_pk -> oblivious pk
+
+result = run_ot(make_kem, sampler, label="NTRU_FO-701", choice=1, n=4)
+assert result["ok"] and result["secure"]
+```
+Requirements:
+- `gen`, `encap` and `decap` work on `bytes`; `encap` returns `(shared_secret, ciphertext)`.
+- The sampler takes a real public key (used only as a length/format template) and returns bytes that decode to the same distribution as a real key, in the same encoding. Nobody may know a secret key for it, so it must never run key generation. Uniform random bytes are enough only when every bit pattern is a valid key (e.g. FrodoKEM); otherwise sample the coefficients and re-encode them, as `oblivious_sampling.py` does for ML-KEM, NTRU and sntrup761.
+- To expose the KEM through the CLI, add an entry returning `(label, make_kem, sampler)` next to `_ntrufo_entry` in `cli.py`.
+
 # Scope and limits
 Semi-honest security only. `resolve_oqs` raises `NotImplementedError` for lattice mechanisms whose encoding is not wired yet (e.g. `ntrulpr`). `is_supported_oqs(alg)` checks in advance. NTRU_FO and GGH_FO are educational/research code and are **not** quantum-safe or production-ready.
