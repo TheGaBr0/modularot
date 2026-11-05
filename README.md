@@ -60,12 +60,6 @@ Outputs go to `tests/output/`:
 [`tests/data/`](tests/data) holds two earlier benchmark runs (`ot_scaling_full.csv`, `ot_scaling_ggh.csv`) on smaller instances than the figures above (for example NTRU-HPS-2048-509 and GGH_FO-200 instead of NTRU-HPS-4096-1229 and GGH_FO-300), so plots drawn from them show the same trends with different absolute numbers. Sampler tests use random keys, so their statistics vary slightly between runs; the component-reuse figure is deterministic.
 
 # References
-[1] S. Even, O. Goldreich, A. Lempel. *A Randomized Protocol for Signing Contracts*. Communications of the ACM 28(6), 1985, pp. 637-647.
-[2] M. Bellare, S. Micali. *Non-Interactive Oblivious Transfer and Applications*. CRYPTO '89, LNCS 435, 1989, pp. 547-557.
-[3] M. Naor, B. Pinkas. *Efficient Oblivious Transfer Protocols*. SODA 2001, pp. 448-457.
-[4] C. Peikert, V. Vaikuntanathan, B. Waters. *A Framework for Efficient and Composable Oblivious Transfer*. CRYPTO 2008, LNCS 5157, pp. 554-571.
-[5] D. Masny, P. Rindal. *Endemic Oblivious Transfer*. ACM CCS 2019, pp. 309-326.
-[6] Y. Gertner, S. Kannan, T. Malkin, O. Reingold, M. Viswanathan. *The Relationship between Public Key Encryption and Oblivious Transfer*. FOCS 2000, pp. 325-335.
-[7] D. Micciancio. *Improving Lattice Based Cryptosystems Using the Hermite Normal Form*. 2001, pp. 126-145.
+This thesis is sadly written in Italian only. For non-Italian speakers interested in reading the details, please use a translation tool to access the content. 
 
-The thesis is written in Italian.
+References can be found at the end of **thesis.pdf** file.
