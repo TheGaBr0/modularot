@@ -1,36 +1,20 @@
 # modularot
-The OT protocol never names a specific scheme. The only KEM-specific operation, sampling an *oblivious* public key (a well-formed key whose secret nobody holds), is injected as a callable. This is necessarily KEM-specific: a black-box KEM cannot yield a sender-private OT.
+Modular KEM-based 1-out-of-*n* Oblivious Transfer (semi-honest). The protocol never names a specific KEM: the only KEM-specific step, sampling an *oblivious* public key (a well-formed key nobody holds the secret for), is passed in as a callable.
 
-How it works:
-1. The receiver generates a real keypair for the chosen branch and an oblivious public key for every other branch, then sends all *n* public keys.
-2. The sender encapsulates under each key and seals message *i* with ChaCha20-Poly1305, keyed from the shared secret via HKDF.
-3. The receiver decapsulates only the chosen branch. It holds no secret for the others, so those messages stay hidden.
+The receiver sends one real public key for its choice and oblivious keys for the other branches. The sender encapsulates under every key and seals each message with ChaCha20-Poly1305. The receiver can only open the chosen one.
 
-## Architecture
-![Architecture](docs/architecture.png)
+Samplers are included for ML-KEM / Kyber, FrodoKEM, NTRU-HPS / HRSS and sntrup761 (via liboqs), plus two research KEMs, `NTRU_FO` and `GGH_FO`, built with the Fujisaki-Okamoto transform.
 
-The package is composed of:
-- `ot_protocol.py` which implements `OTSender`, `OTReceiver` and `run_ot`, plus an adversarial check that a curious receiver cannot open any other branch.
-- `oblivious_sampling.py` which contains the per-family oblivious samplers: ML-KEM / Kyber, FrodoKEM, NTRU-HPS / HRSS, sntrup761, and the custom NTRU_FO and GGH-HNF.
-- `kem_adapter/` which defines the `KEM` interface and `KEMAdapter`, used to plug in any KEM.
-- `custom_kems/` which contains two research-grade KEMs built from scratch with the Fujisaki-Okamoto transform: `NTRU_FO` and `GGH_FO`.
-- `cli.py` which provides the `modularot` command (`run`, `bench`, `list-kems`).
-
-GGH is supported in its HNF form (Micciancio's variant, via [GGH_crypto](https://github.com/TheGaBr0/GGH) with `GGH_private=True`) because it is the only GGH format whose public key admits a sound oblivious sampler. The classic `B = U·R` public basis is distinguishable from any trapdoor-free sample by its determinant alone.
-
-# Installation
+## Install
 ```
-pip install .
+pip install modularot
 ```
-This installs `cryptography` and `liboqs-python`. **liboqs-python needs the [liboqs](https://github.com/open-quantum-safe/liboqs) C library built and installed first**; it is not a plain PyPI wheel. Follow the liboqs build instructions, then install `liboqs-python` from PyPI or from a local checkout.
-
-The custom KEMs (NTRU_FO, GGH_FO) are an optional extra with their own native dependency (`python-flint`, built on FLINT/GMP/MPFR):
+Requires the [liboqs](https://github.com/open-quantum-safe/liboqs) C library, installed before `liboqs-python`. The custom KEMs need an extra (`python-flint`):
 ```
-pip install ".[custom-kems]"
+pip install "modularot[custom-kems]"
 ```
 
-# General Usage
-As a library:
+## Usage
 ```python
 from modularot import run_ot, oqs_kem_factory, resolve_oqs
 
@@ -44,45 +28,16 @@ result = run_ot(
 assert result["ok"]      # receiver got the message it asked for
 assert result["secure"]  # receiver could not open any other branch
 ```
-`OTSender`, `OTReceiver` and `KEMAdapter` are also exported: to support a KEM that is not in liboqs you only need to write its oblivious sampler (see `oblivious_sampling.py` for worked examples of distinct encodings).
 
-As a program:
+Command line:
 ```
-modularot run                                  # ML-KEM-768, 1-out-of-2
-modularot run --n 3 --choice 1 --message "a" --message "b" --message "c"
-modularot list-kems                            # names usable with --kem / --kems
-
-modularot bench                                # default KEM subset + custom KEMs
-modularot bench --kems ML-KEM-768 sntrup761 --no-custom
-modularot bench --ns 2 4 8 16 32 --reps 5 --csv out.csv
+modularot run --kem ML-KEM-768 --n 3 --choice 1
+modularot list-kems
+modularot bench --ns 2 4 8 --csv out.csv
 ```
-`run` performs one real transfer. `bench` reports per-phase timing and bandwidth for each KEM across branch counts and writes a CSV.
 
-# Adding a new KEM
-A KEM plugs in through two pieces: a `KEMAdapter` around its three operations, and an oblivious sampler. This is how NTRU_FO is wired:
-```python
-from modularot import KEMAdapter, run_ot
-from modularot.custom_kems.ntru_fo.ntru_fo import NTRU_FO
-from modularot.oblivious_sampling import sample_oblivious_ntru_fo
+## Other KEMs
+Wrap the KEM in a `KEMAdapter(gen, encap, decap)` (all on `bytes`; `encap` returns `(shared_secret, ciphertext)`) and write a sampler `real_pk -> oblivious_pk` that returns a key in the same encoding as a real one, without running key generation. Then pass both to `run_ot`.
 
-Q = 8192
-
-def make_kem():
-    impl = NTRU_FO(N=701, p=3, q=Q)          # fresh, independent instance per call
-    return KEMAdapter(gen=impl.generate_keys,    # () -> (pk, sk)
-                      encap=impl.encapsulate,    # pk -> (ss, ct)
-                      decap=impl.decapsulate)    # (sk, ct) -> ss
-
-def sampler(real_pk: bytes) -> bytes:
-    return sample_oblivious_ntru_fo(real_pk, q=Q)   # real_pk -> oblivious pk
-
-result = run_ot(make_kem, sampler, label="NTRU_FO-701", choice=1, n=4)
-assert result["ok"] and result["secure"]
-```
-Requirements:
-- `gen`, `encap` and `decap` work on `bytes`; `encap` returns `(shared_secret, ciphertext)`.
-- The sampler takes a real public key (used only as a length/format template) and returns bytes that decode to the same distribution as a real key, in the same encoding. Nobody may know a secret key for it, so it must never run key generation. Uniform random bytes are enough only when every bit pattern is a valid key (e.g. FrodoKEM); otherwise sample the coefficients and re-encode them, as `oblivious_sampling.py` does for ML-KEM, NTRU and sntrup761.
-- To expose the KEM through the CLI, add an entry returning `(label, make_kem, sampler)` next to `_ntrufo_entry` in `cli.py`.
-
-# Scope and limits
-Semi-honest security only. `resolve_oqs` raises `NotImplementedError` for lattice mechanisms whose encoding is not wired yet (e.g. `ntrulpr`). `is_supported_oqs(alg)` checks in advance. NTRU_FO and GGH_FO are educational/research code and are **not** quantum-safe or production-ready.
+## Limits
+Semi-honest security only. `NTRU_FO` and `GGH_FO` are research code, not quantum-safe or production-ready.
